@@ -1,0 +1,8 @@
+streamlit==0.80.0
+streamlit_folium==0.3.0
+matplotlib==3.3.3
+pydeck==0.6.2
+pandas==1.2.1
+folium==0.12.1
+plotly==4.14.3
+dms2dec==0.1
