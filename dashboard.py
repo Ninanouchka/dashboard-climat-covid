@@ -12,6 +12,7 @@ import plotly.express as px
 import numpy as np 
 import pykrige.kriging_tools as kt 
 from pykrige.ok import OrdinaryKriging
+import plotly.graph_objects as go
 
 ##### FUNCTIONS
 def geoloc_convert(loc_degree):
@@ -55,11 +56,49 @@ def ok_map():
     
 def station_bar_chart(title=""):
     st.subheader(title)
-    return px.bar(df_station, x='date', y='iptcc', color='iptcc', color_continuous_scale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80'])
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=df_station.date, 
+        y=df_station.iptcc,
+        showlegend=False,
+        marker=dict(
+            color=df_station.iptcc,
+            colorscale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80']
+        )))
+    fig.add_trace(go.Scatter(
+        x=df_station.date, 
+        y=df_station.iptcc_rolling_mean,
+        name="Moyenne mobile 14 jours",
+        line=dict(
+            color="#FF4B4B",
+        )))
+    fig.update_layout(
+        legend_orientation='h'
+    )
+    return fig
 
 def departement_bar_chart(title=""):
     st.subheader(title)
-    return px.bar(df_departement, x='date', y='iptcc', color='iptcc', color_continuous_scale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80'])
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=df_departement.date, 
+        y=df_departement.iptcc,
+        showlegend=False,
+        marker=dict(
+            color=df_departement.iptcc,
+            colorscale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80']
+        )))
+    fig.add_trace(go.Scatter(
+        x=df_departement.date, 
+        y=df_departement.iptcc_rolling_mean,
+        name="Moyenne mobile 14 jours",
+        line=dict(
+            color="#FF4B4B",
+        )))
+    fig.update_layout(
+        legend_orientation='h'
+    )
+    return fig
 
 @st.cache
 def load_data():
@@ -77,7 +116,7 @@ def load_data():
     return df, df_grid
 
 
-st.title("Meteo Covid - IPTCC")
+st.title("Climat Covid - IPTCC")
 
 # Load the dataset
 df, df_grid = load_data()
@@ -111,8 +150,10 @@ if show_timerange:
     select_departement = st.sidebar.selectbox("Departments", options= np.append([""], df['departement'].sort_values().unique()), index=0)
     if select_station != "":
         df_station = df[df['nom'] == select_station]
+        df_station["iptcc_rolling_mean"] = df_station.iptcc.rolling(window=14).mean()
     if select_departement != "":
         df_departement = df[df['departement'] == select_departement]
+        df_departement["iptcc_rolling_mean"] = df_departement.iptcc.rolling(window=14).mean()
 
 else:
     # Get last day data 
