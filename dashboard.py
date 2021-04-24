@@ -46,20 +46,32 @@ def heat_map():
 def ok_map():
     fig = plt.Figure(figsize=(12,7))
     # Compute the ordinary kriging 
-    OK = OrdinaryKriging(df['latitude'], df['longitude'], df['iptcc'], variogram_model='linear', verbose=False, nlags=60, enable_plotting=True)
+    OK = OrdinaryKriging(df['latitude'], df['longitude'], df['iptcc'], variogram_model='linear', verbose=False, 
+                         enable_plotting=False)
     z, ss = OK.execute('points', df['latitude'], df['longitude']) 
-
-    df_gradient = df[['latitude', 'longitude']]
+    df_gradient = df_grid[['Y', 'X']]
     df_gradient['iptcc'] = pd.Series(z)
-    return scatter_map(df_gradient)
+    mark_size = [100 for i in df_gradient.index]
+    fig = px.scatter_mapbox(df_gradient, lat="Y", lon="X", hover_data=["iptcc"],
+          color="iptcc", color_continuous_scale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80'],
+          size=mark_size, size_max=4, zoom=4, height=450)
+    fig.update_layout(mapbox_style="open-street-map")
+    fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+    return fig
     
 def station_bar_chart(title=""):
     st.subheader(title)
-    return px.bar(df_station, x='date', y='iptcc', color='iptcc', color_continuous_scale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80'])
+    delta_date = max(df_station['date']) - min(df_station['date'])
+    if delta_date > pd.Timedelta("32 days"):
+        df_station_week = df_station.set_index('date').resample('W').mean().reset_index()
+    return px.bar(df_station_week, x='date', y='iptcc', color='iptcc', color_continuous_scale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80'])
 
 def departement_bar_chart(title=""):
     st.subheader(title)
-    return px.bar(df_departement, x='date', y='iptcc', color='iptcc', color_continuous_scale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80'])
+    delta_date = max(df_departement['date']) - min(df_departement['date'])
+    if delta_date > pd.Timedelta("32 days"):
+        df_departement_week = df_departement.set_index('date').resample('W').mean().reset_index()
+    return px.bar(df_departement_week, x='date', y='iptcc', color='iptcc', color_continuous_scale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80'])
 
 @st.cache
 def load_data():
@@ -74,7 +86,7 @@ def load_data():
     
     #Load coordinates France grid
     df_grid = pd.read_csv("L93_10K.csv")
-    return df, df_grid
+    return df, df_grid[:112]
 
 
 st.title("Meteo Covid - IPTCC")
@@ -128,8 +140,9 @@ else:
 # st.map(df)
 st.plotly_chart(scatter_map(df), use_container_width=True)
 # st.plotly_chart(heat_map(df), use_container_width=True)
-# st.plotly_chart(ok_map(df), use_container_width=True)
+# st.plotly_chart(ok_map(), use_container_width=True)
 
+##### CHARTS
 if select_station != "":
     st.plotly_chart(station_bar_chart(title='Sation ' + select_station), use_container_width=True)
 if select_departement != "":
