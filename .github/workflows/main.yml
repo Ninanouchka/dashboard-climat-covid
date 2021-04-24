@@ -3,9 +3,9 @@ name: Deploy
 on:
   workflow_dispatch:
   
-  #push:
-   # branches:
-    #  - master
+  push:
+    branches:
+    x  - master
 
 jobs:
   build:
