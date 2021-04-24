@@ -102,7 +102,7 @@ def departement_bar_chart(title=""):
         y=df_departement_week.iptcc,
         showlegend=False,
         marker=dict(
-            color=df_departement.iptcc,
+            color=df_departement_week.iptcc,
             colorscale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80']
         )))
     fig.add_trace(go.Scatter(
@@ -145,16 +145,16 @@ max_ts = max(df["date"]).to_pydatetime()
 ##### SIDEBAR
 #slider to chose date
 st.sidebar.subheader("Inputs")
-day_date = pd.to_datetime(st.sidebar.slider("Date to chose", min_value=min_ts, max_value=max_ts, value=max_ts))
+time_window = st.sidebar.radio('Time Window', ['Time Range', 'Single Date',])
+if time_window!='Time Range':
+    day_date = pd.to_datetime(st.sidebar.slider("Date to chose", min_value=min_ts, max_value=max_ts, value=max_ts))
 select_station = "" 
 select_departement = ""
 # day = st.sidebar.text_input("Day", value='22')
 # month = st.sidebar.text_input("Month", value='04')
 # year = st.sidebar.text_input("Year", value='2021')
-show_timerange = st.sidebar.checkbox("use date range")
     
-    
-if show_timerange:
+if time_window=='Time Range':
     min_selection, max_selection = st.sidebar.slider("Timeline", min_value=min_ts, max_value=max_ts, value=[min_ts, max_ts])
 
     # Filter data for timeframe
