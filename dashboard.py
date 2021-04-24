@@ -49,7 +49,7 @@ def ok_map():
     # Compute the ordinary kriging 
     OK = OrdinaryKriging(df['latitude'], df['longitude'], df['iptcc'], variogram_model='linear', verbose=False, 
                          enable_plotting=False)
-    z, ss = OK.execute('points', df['latitude'], df['longitude']) 
+    z, ss = OK.execute('points', df_grid['Y'], df_grid['X']) 
     df_gradient = df_grid[['Y', 'X']]
     df_gradient['iptcc'] = pd.Series(z)
     mark_size = [100 for i in df_gradient.index]
@@ -130,7 +130,7 @@ def load_data():
     
     #Load coordinates France grid
     df_grid = pd.read_csv("L93_10K.csv")
-    return df, df_grid[:112]
+    return df, df_grid
 
 
 st.title("Climat Covid - IPTCC")
@@ -186,7 +186,7 @@ else:
 # st.map(df)
 st.plotly_chart(scatter_map(df), use_container_width=True)
 # st.plotly_chart(heat_map(df), use_container_width=True)
-# st.plotly_chart(ok_map(), use_container_width=True)
+st.plotly_chart(ok_map(), use_container_width=True)
 
 ##### CHARTS
 if select_station != "":
