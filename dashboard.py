@@ -29,7 +29,9 @@ def scatter_map(df):
     df = df.groupby('station').mean()[['iptcc', 'latitude', 'longitude']]
     mark_size = [100 for i in df.index]
     fig = px.scatter_mapbox(df, lat="latitude", lon="longitude", hover_data=["iptcc"],
-          color="iptcc", color_continuous_scale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80'], size=mark_size, size_max=10, zoom=4, height=450)
+          color="iptcc", color_continuous_scale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80'], 
+          range_color=[0, 100],
+          size=mark_size, size_max=10, zoom=4, height=450)
     fig.update_layout(mapbox_style="open-street-map")
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     return fig
@@ -56,6 +58,7 @@ def ok_map():
     mark_size = [100 for i in df_gradient.index]
     fig = px.scatter_mapbox(df_gradient, lat="Y", lon="X", hover_data=["iptcc"],
           color="iptcc", color_continuous_scale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80'],
+          range_color=[0, 100],
           size=mark_size, size_max=4, zoom=4, height=450)
     fig.update_layout(mapbox_style="open-street-map")
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
@@ -135,7 +138,7 @@ def load_data():
 
 
 st.title("Climat Covid - IPTCC")
-
+st.write("L'indicateur IPTCC a été créé par Predict (Méteo France) afin d'évaluer l'impact de la température et de l'humidité sur la propagation du virus.")
 # Load the dataset
 df, df_grid = load_data()
 
