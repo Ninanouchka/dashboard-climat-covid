@@ -47,7 +47,8 @@ def heat_map():
 def ok_map():
     fig = plt.Figure(figsize=(12,7))
     # Compute the ordinary kriging 
-    OK = OrdinaryKriging(df['latitude'], df['longitude'], df['iptcc'], variogram_model='linear', verbose=False, 
+    df_heatmap = df.groupby("station").mean()
+    OK = OrdinaryKriging(df_heatmap['latitude'], df_heatmap['longitude'], df_heatmap['iptcc'], variogram_model='spherical', verbose=False, 
                          enable_plotting=False)
     z, ss = OK.execute('points', df_grid['Y'], df_grid['X']) 
     df_gradient = df_grid[['Y', 'X']]
