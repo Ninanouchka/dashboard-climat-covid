@@ -19,8 +19,9 @@ def geoloc_convert(loc_degree):
 
 def scatter_map(df):
     """ Build scatter map with color gradient for iptcc """
+    mark_size = [100 for i in df.index]
     fig = px.scatter_mapbox(df, lat="latitude", lon="longitude", hover_data=["iptcc"],
-                    color="iptcc", zoom=4, height=300)
+                    color="iptcc", size=mark_size, size_max=10, zoom=4, height=450)
     fig.update_layout(mapbox_style="open-street-map")
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     return fig
@@ -45,13 +46,16 @@ df = load_data()
 min_ts = min(df["date"]).to_pydatetime()
 max_ts = max(df["date"]).to_pydatetime()
 
-day = st.sidebar.text_input("Day", value='22')
-month = st.sidebar.text_input("Month", value='04')
-year = st.sidebar.text_input("Year", value='2021')
+#slider to chose date
+st.sidebar.subheader("Inputs")
+day_date = pd.to_datetime(st.sidebar.slider("Date to chose", min_value=min_ts, max_value=max_ts, value=max_ts))
+
+# day = st.sidebar.text_input("Day", value='22')
+# month = st.sidebar.text_input("Month", value='04')
+# year = st.sidebar.text_input("Year", value='2021')
 show_heatmap = st.sidebar.checkbox("Show date range")
 
 if show_heatmap:
-    st.sidebar.subheader("Inputs")
     min_selection, max_selection = st.sidebar.slider("Timeline", min_value=min_ts, max_value=max_ts, value=[min_ts, max_ts])
 
     # Filter data for timeframe
@@ -60,13 +64,13 @@ if show_heatmap:
     st.write(f"Stations: {len(df)}")
 
 else:
+    
     # Get last day data 
-    day_date = pd.to_datetime(year + month + day, format='%Y%m%d')
+#     day_date = pd.to_datetime(year + month + day, format='%Y%m%d')
     st.write(f"Data for {day_date.date()}")
     df = df[(df["date"] == day_date)]
     st.write(f"Data Points: {len(df)}")
 
 # Plot the stations on the map
 # st.map(df)
-
 st.plotly_chart(scatter_map(df), use_container_width=True)
