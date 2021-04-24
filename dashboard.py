@@ -47,30 +47,41 @@ def heat_map():
 def ok_map():
     fig = plt.Figure(figsize=(12,7))
     # Compute the ordinary kriging 
-    OK = OrdinaryKriging(df['latitude'], df['longitude'], df['iptcc'], variogram_model='linear', verbose=False, nlags=60, enable_plotting=True)
+    OK = OrdinaryKriging(df['latitude'], df['longitude'], df['iptcc'], variogram_model='linear', verbose=False, 
+                         enable_plotting=False)
     z, ss = OK.execute('points', df['latitude'], df['longitude']) 
-
-    df_gradient = df[['latitude', 'longitude']]
+    df_gradient = df_grid[['Y', 'X']]
     df_gradient['iptcc'] = pd.Series(z)
-    return scatter_map(df_gradient)
+    mark_size = [100 for i in df_gradient.index]
+    fig = px.scatter_mapbox(df_gradient, lat="Y", lon="X", hover_data=["iptcc"],
+          color="iptcc", color_continuous_scale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80'],
+          size=mark_size, size_max=4, zoom=4, height=450)
+    fig.update_layout(mapbox_style="open-street-map")
+    fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
+    return fig
     
 def station_bar_chart(title=""):
     st.subheader(title)
+    delta_date = max(df_station['date']) - min(df_station['date'])
+    df_station_week = df_station.copy()
+    if delta_date > pd.Timedelta("150 days"):
+        df_station_week = df_station_week.set_index('date').resample('W').mean().reset_index()
+
     fig = go.Figure()
     fig.add_trace(go.Bar(
-        x=df_station.date, 
-        y=df_station.iptcc,
+        x=df_station_week.date, 
+        y=df_station_week.iptcc,
         showlegend=False,
         marker=dict(
-            color=df_station.iptcc,
+            color=df_station_week.iptcc,
             colorscale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80']
         )))
     fig.add_trace(go.Scatter(
         x=df_station.date, 
         y=df_station.iptcc_rolling_mean,
-        name="Moyenne mobile 14 jours",
+        name="Moyenne mobile 30 jours",
         line=dict(
-            color="#FF4B4B",
+            color="black", #"#FF4B4B",
         )))
     fig.update_layout(
         legend_orientation='h'
@@ -79,10 +90,16 @@ def station_bar_chart(title=""):
 
 def departement_bar_chart(title=""):
     st.subheader(title)
+
+    df_departement_week = df_departement.copy()
+    delta_date = max(df_departement['date']) - min(df_departement['date'])
+    if delta_date > pd.Timedelta("150 days"):
+        df_departement_week = df_departement_week.set_index('date').resample('W').mean().reset_index()
+
     fig = go.Figure()
     fig.add_trace(go.Bar(
-        x=df_departement.date, 
-        y=df_departement.iptcc,
+        x=df_departement_week.date, 
+        y=df_departement_week.iptcc,
         showlegend=False,
         marker=dict(
             color=df_departement.iptcc,
@@ -91,9 +108,9 @@ def departement_bar_chart(title=""):
     fig.add_trace(go.Scatter(
         x=df_departement.date, 
         y=df_departement.iptcc_rolling_mean,
-        name="Moyenne mobile 14 jours",
+        name="Moyenne mobile 30 jours",
         line=dict(
-            color="#FF4B4B",
+            color="black", #"#FF4B4B",
         )))
     fig.update_layout(
         legend_orientation='h'
@@ -113,7 +130,7 @@ def load_data():
     
     #Load coordinates France grid
     df_grid = pd.read_csv("L93_10K.csv")
-    return df, df_grid
+    return df, df_grid[:112]
 
 
 st.title("Climat Covid - IPTCC")
@@ -150,10 +167,10 @@ if show_timerange:
     select_departement = st.sidebar.selectbox("Departments", options= np.append([""], df['departement'].sort_values().unique()), index=0)
     if select_station != "":
         df_station = df[df['nom'] == select_station]
-        df_station["iptcc_rolling_mean"] = df_station.iptcc.rolling(window=14).mean()
+        df_station["iptcc_rolling_mean"] = df_station.iptcc.rolling(window=30, center=True).mean()
     if select_departement != "":
         df_departement = df[df['departement'] == select_departement]
-        df_departement["iptcc_rolling_mean"] = df_departement.iptcc.rolling(window=14).mean()
+        df_departement["iptcc_rolling_mean"] = df_departement.iptcc.rolling(window=30, center=True).mean()
 
 else:
     # Get last day data 
@@ -169,8 +186,9 @@ else:
 # st.map(df)
 st.plotly_chart(scatter_map(df), use_container_width=True)
 # st.plotly_chart(heat_map(df), use_container_width=True)
-# st.plotly_chart(ok_map(df), use_container_width=True)
+# st.plotly_chart(ok_map(), use_container_width=True)
 
+##### CHARTS
 if select_station != "":
     st.plotly_chart(station_bar_chart(title='Sation ' + select_station), use_container_width=True)
 if select_departement != "":
