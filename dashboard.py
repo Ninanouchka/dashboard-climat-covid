@@ -197,3 +197,4 @@ if select_departement != "":
 
 st.subheader("Informations sur l'IPTCC", anchor="info-iptcc")
 st.image("https://raw.githubusercontent.com/Ninanouchka/dashboard-climat-covid/master/other/image_2021-04-24_16-59-46.png")
+st.write("Projet réalisé dans le cadre du Hackathon-covid.fr.")
