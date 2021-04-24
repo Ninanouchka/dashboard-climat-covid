@@ -21,8 +21,12 @@ def geoloc_convert(loc_degree):
         loc_decimal = -loc_decimal
     return loc_decimal
 
+
+
 def scatter_map(df):
     """ Build scatter map with color gradient for iptcc """
+    #select date
+    df = df.groupby('station').mean()[['iptcc', 'latitude', 'longitude']]
     mark_size = [100 for i in df.index]
     fig = px.scatter_mapbox(df, lat="latitude", lon="longitude", hover_data=["iptcc"],
           color="iptcc", color_continuous_scale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80'], size=mark_size, size_max=10, zoom=4, height=450)
@@ -50,6 +54,8 @@ def ok_map(df):
     df_gradient['iptcc'] = pd.Series(z)
     return scatter_map(df_gradient)
     
+def bar_chart(df):
+    return px.bar(df, x='date', y='iptcc')
 
 @st.cache
 def load_data():
@@ -59,6 +65,7 @@ def load_data():
     df['latitude'] = df['latitude'].apply(geoloc_convert)
     df['longitude'] = df['longitude'].apply(geoloc_convert)
     df['iptcc'] = df['iptcc'].str.replace(',', '.').astype(float)
+    df['station'] = df['station'].astype(int)
     return df
 
 
@@ -75,20 +82,24 @@ max_ts = max(df["date"]).to_pydatetime()
 #slider to chose date
 st.sidebar.subheader("Inputs")
 day_date = pd.to_datetime(st.sidebar.slider("Date to chose", min_value=min_ts, max_value=max_ts, value=max_ts))
-
+                                                                                                    
 # day = st.sidebar.text_input("Day", value='22')
 # month = st.sidebar.text_input("Month", value='04')
 # year = st.sidebar.text_input("Year", value='2021')
 show_timerange = st.sidebar.checkbox("Show date range")
-show_station = st.sidebar.selectbox("Stations", options= np.append([""], df['nom'].sort_values().unique()), index=0)
+select_station = st.sidebar.selectbox("Stations", options= np.append([""], df['nom'].sort_values().unique()), index=0)
 
-
+if select_station != "":
+    df_station = df[df['nom'] == select_station]
+    show_timerange = True
+    
 if show_timerange:
     min_selection, max_selection = st.sidebar.slider("Timeline", min_value=min_ts, max_value=max_ts, value=[min_ts, max_ts])
 
     # Filter data for timeframe
     st.write(f"Filtering between {min_selection.date()} & {max_selection.date()}")
-    df = df[(df["date"] >= min_selection) & (df["date"] <= max_selection)].groupby('station').mean()[['iptcc', 'latitude', 'longitude']]
+    
+    df = df[(df["date"] >= min_selection) & (df["date"] <= max_selection)]
     st.write(f"Stations: {len(df)}")
 
 else:
@@ -98,13 +109,14 @@ else:
     df = df[(df["date"] == day_date)]
     st.write(f"Data Points: {len(df)}")
 
-if show_station != "":
-    st.write("hello.")
-    pass
+
 
 ##### MAPS
 # Plot the stations on the map
 # st.map(df)
 st.plotly_chart(scatter_map(df), use_container_width=True)
 st.plotly_chart(heat_map(df), use_container_width=True)
-st.plotly_chart(ok_map(df), use_container_width=True)
+# st.plotly_chart(ok_map(df), use_container_width=True)
+
+if select_station != "":
+    st.plotly_chart(bar_chart(df_station), use_container_width=True)
