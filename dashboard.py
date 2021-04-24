@@ -21,7 +21,7 @@ def scatter_map(df):
     """ Build scatter map with color gradient for iptcc """
     mark_size = [100 for i in df.index]
     fig = px.scatter_mapbox(df, lat="latitude", lon="longitude", hover_data=["iptcc"],
-                    color="iptcc", size=mark_size, size_max=10, zoom=4, height=450)
+                    color="iptcc", color_continuous_scale=['#7BD150', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80'], size=mark_size, size_max=10, zoom=4, height=450)
     fig.update_layout(mapbox_style="open-street-map")
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     return fig
