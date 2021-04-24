@@ -138,7 +138,7 @@ def load_data():
 
 
 st.title("Climat Covid - IPTCC")
-st.write("L'indicateur IPTCC a été créé par Predict (Méteo France) afin d'évaluer l'impact de la température et de l'humidité sur la propagation du virus.")
+st.write("L'indicateur IPTCC a été créé par Predict (Méteo France) afin d'évaluer l'impact de la température et de l'humidité sur la propagation du virus. Plus l'IPTCC est proche de 100, plus les conditions météorologiques favorisent la propagation du virus dans l'air, et donc potentiellement les contaminations.")
 # Load the dataset
 df, df_grid = load_data()
 
@@ -155,18 +155,14 @@ if time_window!=windows[0]:
     day_date = pd.to_datetime(st.sidebar.slider("", min_value=min_ts, max_value=max_ts, value=max_ts))
 select_station = "" 
 select_departement = ""
-# day = st.sidebar.text_input("Day", value='22')
-# month = st.sidebar.text_input("Month", value='04')
-# year = st.sidebar.text_input("Year", value='2021')
     
 if time_window==windows[0]:
     min_selection, max_selection = st.sidebar.slider("Timeline", min_value=min_ts, max_value=max_ts, value=[min_ts, max_ts])
 
     # Filter data for timeframe
-    st.write(f"Entre le {min_selection.date()} et le {max_selection.date()}")
+    st.write(f"Entre le {min_selection.date()} et le {max_selection.date()} • {len(df)} stations météo")
     
     df = df[(df["date"] >= min_selection) & (df["date"] <= max_selection)]
-    st.write(f"{len(df)} stations météo")
     
     select_station = st.sidebar.selectbox("Stations", options= np.append([""], df['nom'].sort_values().unique()), index=0)
     select_departement = st.sidebar.selectbox("Départements", options= np.append([""], df['departement'].sort_values().unique()), index=0)
@@ -198,3 +194,6 @@ if select_station != "":
     st.plotly_chart(station_bar_chart(title='Sation ' + select_station), use_container_width=True)
 if select_departement != "":
     st.plotly_chart(departement_bar_chart(title='Departement ' + select_departement), use_container_width=True)
+
+st.subheader("Informations sur l'IPTCC", anchor="info-iptcc")
+st.image("https://raw.githubusercontent.com/Ninanouchka/dashboard-climat-covid/master/other/image_2021-04-24_16-59-46.png")
