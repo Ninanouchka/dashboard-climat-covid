@@ -145,27 +145,28 @@ max_ts = max(df["date"]).to_pydatetime()
 
 ##### SIDEBAR
 #slider to chose date
-st.sidebar.subheader("Inputs")
-time_window = st.sidebar.radio('Time Window', ['Time Range', 'Single Date',])
-if time_window!='Time Range':
-    day_date = pd.to_datetime(st.sidebar.slider("Date to chose", min_value=min_ts, max_value=max_ts, value=max_ts))
+st.sidebar.subheader("Paramètres")
+windows = ["Fenêtre temporelle", "Date unique"]
+time_window = st.sidebar.radio('', windows)
+if time_window!=windows[0]:
+    day_date = pd.to_datetime(st.sidebar.slider("", min_value=min_ts, max_value=max_ts, value=max_ts))
 select_station = "" 
 select_departement = ""
 # day = st.sidebar.text_input("Day", value='22')
 # month = st.sidebar.text_input("Month", value='04')
 # year = st.sidebar.text_input("Year", value='2021')
     
-if time_window=='Time Range':
+if time_window==windows[0]:
     min_selection, max_selection = st.sidebar.slider("Timeline", min_value=min_ts, max_value=max_ts, value=[min_ts, max_ts])
 
     # Filter data for timeframe
-    st.write(f"Filtering between {min_selection.date()} & {max_selection.date()}")
+    st.write(f"Entre le {min_selection.date()} et le {max_selection.date()}")
     
     df = df[(df["date"] >= min_selection) & (df["date"] <= max_selection)]
-    st.write(f"Stations: {len(df)}")
+    st.write(f"{len(df)} stations météo")
     
     select_station = st.sidebar.selectbox("Stations", options= np.append([""], df['nom'].sort_values().unique()), index=0)
-    select_departement = st.sidebar.selectbox("Departments", options= np.append([""], df['departement'].sort_values().unique()), index=0)
+    select_departement = st.sidebar.selectbox("Départements", options= np.append([""], df['departement'].sort_values().unique()), index=0)
     if select_station != "":
         df_station = df[df['nom'] == select_station]
         df_station["iptcc_rolling_mean"] = df_station.iptcc.rolling(window=30, center=True).mean()
