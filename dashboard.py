@@ -4,25 +4,23 @@ import pandas as pd
 from datetime import datetime
 import folium
 import re
-from streamlit_folium import folium_static
 import matplotlib.pyplot as plt
 from dms2dec.dms_convert import dms2dec
-import pydeck as pdk
 import plotly.express as px
 import numpy as np 
 import pykrige.kriging_tools as kt 
 from pykrige.ok import OrdinaryKriging
 import plotly.graph_objects as go
+from pyproj import transform, Transformer
 
 ##### FUNCTIONS
-def geoloc_convert(loc_degree):
+def coordinates_convert(loc_degree):
     """ Convert degrees minutes seconds coordinate to decimal latitude or longitude  """
     loc_decimal = dms2dec(loc_degree)
     if loc_degree[-1] == 'O':
         loc_decimal = -loc_decimal
     return loc_decimal
-
-
+    
 def scatter_map(df):
     """ Build scatter map with color gradient for iptcc """
     #select date
@@ -127,13 +125,13 @@ def load_data():
     # Load IPTCC data
     df = pd.read_csv("IPTCC-20210423-153416.csv", sep="|", parse_dates=['DATE'])
     df.columns = [col_name.lower() for col_name in df.columns]
-    df['latitude'] = df['latitude'].apply(geoloc_convert)
-    df['longitude'] = df['longitude'].apply(geoloc_convert)
+    df['latitude'] = df['latitude'].apply(coordinates_convert)
+    df['longitude'] = df['longitude'].apply(coordinates_convert)
     df['iptcc'] = df['iptcc'].str.replace(',', '.').astype(float)
     df['station'] = df['station'].astype(int)
     
     #Load coordinates France grid
-    df_grid = pd.read_csv("L93_10K.csv")
+    df_grid = pd.read_csv("grille_france_10km_lat_long_sur_continent.csv")
     return df, df_grid
 
 
@@ -195,6 +193,6 @@ if select_station != "":
 if select_departement != "":
     st.plotly_chart(departement_bar_chart(title='Departement ' + select_departement), use_container_width=True)
 
-st.subheader("Informations sur l'IPTCC", anchor="info-iptcc")
+st.subheader("Informations sur l'IPTCC") #, anchor="info-iptcc"
 st.image("https://raw.githubusercontent.com/Ninanouchka/dashboard-climat-covid/master/other/image_2021-04-24_16-59-46.png")
 st.write("Projet réalisé dans le cadre du Hackathon-covid.fr.")
