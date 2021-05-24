@@ -158,7 +158,7 @@ if time_window==windows[0]:
     min_selection, max_selection = st.sidebar.slider("Timeline", min_value=min_ts, max_value=max_ts, value=[min_ts, max_ts])
 
     # Filter data for timeframe
-    st.write(f"Entre le {min_selection.date()} et le {max_selection.date()} • {len(df)} stations météo")
+    st.write(f"IPTCC moyen du {min_selection.date()} au {max_selection.date()})
     
     df = df[(df["date"] >= min_selection) & (df["date"] <= max_selection)]
     
@@ -174,9 +174,9 @@ if time_window==windows[0]:
 else:
     # Get last day data 
 #     day_date = pd.to_datetime(year + month + day, format='%Y%m%d')
-    st.write(f"Data for {day_date.date()}")
+    st.write(f"IPTCC le {day_date.date()}")
     df = df[(df["date"] == day_date)]
-    st.write(f"Data Points: {len(df)}")
+ 
 
 
 
@@ -196,3 +196,6 @@ if select_departement != "":
 st.subheader("Informations sur l'IPTCC") #, anchor="info-iptcc"
 st.image("https://raw.githubusercontent.com/Ninanouchka/dashboard-climat-covid/master/other/image_2021-04-24_16-59-46.png")
 st.write("Projet réalisé dans le cadre du Hackathon-covid.fr.")
+st.write("Données Predict (Météo-France)")
+             
+            
