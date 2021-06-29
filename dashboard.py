@@ -147,43 +147,43 @@ max_ts = max(df["date"]).to_pydatetime()
 ##### SIDEBAR
 #slider to chose date
 st.sidebar.subheader("Paramètres")
-windows = ["Fenêtre temporelle", "Date unique"]
-time_window = st.sidebar.radio('', windows)
-if time_window!=windows[0]:
-    day_date = pd.to_datetime(st.sidebar.slider("", min_value=min_ts, max_value=max_ts, value=max_ts))
+windows = ["Date unique"]
+
+day_date = pd.to_datetime(st.sidebar.slider("", min_value=min_ts, max_value=max_ts, value=max_ts))
 select_station = "" 
 select_departement = ""
-    
-if time_window==windows[0]:
-    min_selection, max_selection = st.sidebar.slider("Timeline", min_value=min_ts, max_value=max_ts, value=[min_ts, max_ts])
 
-    # Filter data for timeframe
-    st.write(f"Entre le {min_selection.date()} et le {max_selection.date()} • {len(df)} stations météo")
-    
-    df = df[(df["date"] >= min_selection) & (df["date"] <= max_selection)]
-    
-    select_station = st.sidebar.selectbox("Stations", options= np.append([""], df['nom'].sort_values().unique()), index=0)
-    select_departement = st.sidebar.selectbox("Départements", options= np.append([""], df['departement'].sort_values().unique()), index=0)
-    if select_station != "":
-        df_station = df[df['nom'] == select_station]
-        df_station["iptcc_rolling_mean"] = df_station.iptcc.rolling(window=30, center=True).mean()
-    if select_departement != "":
-        df_departement = df[df['departement'] == select_departement]
-        df_departement["iptcc_rolling_mean"] = df_departement.iptcc.rolling(window=30, center=True).mean()
 
-else:
-    # Get last day data 
+# if time_window=="Fenêtre":
+#     min_selection, max_selection = st.sidebar.slider("Timeline", min_value=min_ts, max_value=max_ts, value=[min_ts, max_ts])
+#
+#     # Filter data for timeframe
+#     st.write(f"Entre le {min_selection.date()} et le {max_selection.date()} • {len(df)} stations météo")
+#
+#     df = df[(df["date"] >= min_selection) & (df["date"] <= max_selection)]
+#
+select_station = st.sidebar.selectbox("Stations", options= np.append([""], df['nom'].sort_values().unique()), index=0)
+select_departement = st.sidebar.selectbox("Départements", options= np.append([""], df['departement'].sort_values().unique()), index=0)
+if select_station != "":
+    df_station = df[df['nom'] == select_station]
+    df_station["iptcc_rolling_mean"] = df_station.iptcc.rolling(window=30, center=True).mean()
+if select_departement != "":
+    df_departement = df[df['departement'] == select_departement]
+    df_departement["iptcc_rolling_mean"] = df_departement.iptcc.rolling(window=30, center=True).mean()
+
+# else:
+    # Get last day data
 #     day_date = pd.to_datetime(year + month + day, format='%Y%m%d')
-    st.write(f"Data for {day_date.date()}")
-    df = df[(df["date"] == day_date)]
-    st.write(f"Data Points: {len(df)}")
+st.write(f"Data for {day_date.date()}")
+df = df[(df["date"] == day_date)]
+st.write(f"Data Points: {len(df)}")
 
 
 
 ##### MAPS
 # Plot the stations on the map
 # st.map(df)
-st.plotly_chart(scatter_map(df), use_container_width=True)
+#st.plotly_chart(scatter_map(df), use_container_width=True)
 # st.plotly_chart(heat_map(df), use_container_width=True)
 st.plotly_chart(ok_map(), use_container_width=True)
 
