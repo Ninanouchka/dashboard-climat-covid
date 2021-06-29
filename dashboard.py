@@ -2,6 +2,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
+from datetime import timedelta
 import folium
 import re
 import matplotlib.pyplot as plt
@@ -62,10 +63,16 @@ def ok_map():
     fig.update_layout(margin={"r":0,"t":0,"l":0,"b":0})
     return fig
     
-def station_bar_chart(title=""):
+def station_bar_chart(title="", date="2021-05-05"):
     st.subheader(title)
     delta_date = max(df_station['date']) - min(df_station['date'])
-    df_station_week = df_station.copy()
+
+    start_date = max(date - timedelta(days=120), df_departement["date"].min())
+
+    df_station_copy = df_station[(df_station["date"] <= date) & (df_station["date"] >= start_date)]
+    #df_station_copy = df_station[df_station["date"] < "2021-02-01"]
+    df_station_week = df_station_copy.copy()
+
     if delta_date > pd.Timedelta("150 days"):
         df_station_week = df_station_week.set_index('date').resample('W').mean().reset_index()
 
@@ -79,8 +86,8 @@ def station_bar_chart(title=""):
             colorscale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80']
         )))
     fig.add_trace(go.Scatter(
-        x=df_station.date, 
-        y=df_station.iptcc_rolling_mean,
+        x=df_station_copy.date,
+        y=df_station_copy.iptcc_rolling_mean,
         name="Moyenne mobile 30 jours",
         line=dict(
             color="black", #"#FF4B4B",
@@ -90,10 +97,13 @@ def station_bar_chart(title=""):
     )
     return fig
 
-def departement_bar_chart(title=""):
+def departement_bar_chart(title="", date="2021-05-05"):
     st.subheader(title)
 
-    df_departement_week = df_departement.copy()
+    start_date = max(date - timedelta(days=120), df_departement["date"].min())
+    df_departement_copy = df_departement[(df_departement["date"] <= date) & (df_departement["date"] >= start_date)]
+    df_departement_week = df_departement_copy.copy()
+
     delta_date = max(df_departement['date']) - min(df_departement['date'])
     if delta_date > pd.Timedelta("150 days"):
         df_departement_week = df_departement_week.set_index('date').resample('W').mean().reset_index()
@@ -108,8 +118,8 @@ def departement_bar_chart(title=""):
             colorscale=['#7BD150', '#F6E626', '#F6E626', '#FC9129', '#FF1B00', '#6E1E80']
         )))
     fig.add_trace(go.Scatter(
-        x=df_departement.date, 
-        y=df_departement.iptcc_rolling_mean,
+        x=df_departement_copy.date,
+        y=df_departement_copy.iptcc_rolling_mean,
         name="Moyenne mobile 30 jours",
         line=dict(
             color="black", #"#FF4B4B",
@@ -133,7 +143,6 @@ def load_data():
     #Load coordinates France grid
     df_grid = pd.read_csv("grille_france_10km_lat_long_sur_continent.csv")
     return df, df_grid
-
 
 st.title("Climat Covid - IPTCC")
 st.write("L'indicateur IPTCC a été créé par Predict (Méteo France) afin d'évaluer l'impact de la température et de l'humidité sur la propagation du virus. Plus l'IPTCC est proche de 100, plus les conditions météorologiques favorisent la propagation du virus dans l'air, et donc potentiellement les contaminations.")
@@ -174,10 +183,14 @@ if select_departement != "":
 # else:
     # Get last day data
 #     day_date = pd.to_datetime(year + month + day, format='%Y%m%d')
-st.write(f"Data for {day_date.date()}")
-df = df[(df["date"] == day_date)]
-st.write(f"Data Points: {len(df)}")
 
+
+start_date = day_date - timedelta(days=1)
+start_date = max(df["date"].min(), start_date)
+df = df[(df["date"] <= day_date) & (df["date"] >= start_date)]
+
+st.write(f"Data for {day_date.date()}")
+st.write(f"Data Points: {len(df)}")
 
 
 ##### MAPS
@@ -189,9 +202,9 @@ st.plotly_chart(ok_map(), use_container_width=True)
 
 ##### CHARTS
 if select_station != "":
-    st.plotly_chart(station_bar_chart(title='Sation ' + select_station), use_container_width=True)
+    st.plotly_chart(station_bar_chart(title='Sation ' + select_station, date=day_date), use_container_width=True)
 if select_departement != "":
-    st.plotly_chart(departement_bar_chart(title='Departement ' + select_departement), use_container_width=True)
+    st.plotly_chart(departement_bar_chart(title='Departement ' + select_departement, date=day_date), use_container_width=True)
 
 st.subheader("Informations sur l'IPTCC") #, anchor="info-iptcc"
 st.image("https://raw.githubusercontent.com/Ninanouchka/dashboard-climat-covid/master/other/image_2021-04-24_16-59-46.png")
